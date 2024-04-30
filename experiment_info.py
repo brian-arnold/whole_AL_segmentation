@@ -1,5 +1,5 @@
 # Names of samples.
-# It is assumed there exists a directory which contains a subdirectory for each sample, named according to the strings in this list.
+# It is assumed there exists a directory (specified below in `data_dir`) which contains a subdirectory for each sample, named according to the strings in this list.
 # Within each of these subdirectories there should be .tif files that are also prefixed with the sample name.
 samples = ['230913_ORL_GCaMP6f_F1', 
            '230913_ORL_GCaMP6f_F2', 
@@ -17,6 +17,7 @@ samples = ['230913_ORL_GCaMP6f_F1',
            '230914_FCV_GCaMP6f_F3', 
            '230915_FCV_GCaMP6f_F1']
 
+# The directory containing the data for each sample.
 data_dir = "/jukebox/mcbride/bjarnold/new_analysis/data/Mar_22_2024/1_RegisteredBrains"
 
 # the dimensions of the 3D volumes imaged over time
@@ -26,7 +27,11 @@ x_dim, y_dim, z_dim = 128, 128, 24
 # This number should be the minimum number of frames across all recordings, to avoid having different number of frames for different odors.
 n_frames_to_analyze = 112 
 
+# the number of initial frames to use for df/f normalization. E.g. if 20, then the mean intensity of the first 20 frames are used to normalize the rest of the frames.
+background_frames = 20
+
 # An underscore separated list of encoded odors in the exact order to which they were delivered to the mosquito samples.
+# It is assumed that this is the order in which odors are delivered and that videos (.tif files) are named alphanumerically according to this order.
 odor_string = "100U_60U_10U_100T_30T_10T_100R_30R_10R_100S_10S_100P_30P_10P_100Q_10Q_100N_30N_10N_100O_10O_100L_50L_10L_100M_10M_100J_100A_100B_100C_100D_100E_100F_100G_100H_100I_100U_60U_10U_100T_30T_10T_100R_30R_10R_100S_10S_100P_30P_10P_100Q_10Q_100N_30N_10N_100O_10O_100L_50L_10L_100M_10M_100J_100A_100B_100C_100D_100E_100F_100G_100H_100I"
 
 # A dictionary to convert the encoded odors to their actual names.
@@ -67,3 +72,9 @@ odor_encodings = {'100A': 'sulcatone-2',
                 '60U': 'hexanal4.03', 
                 '10U': 'hexanal2.825'}
 
+params = {}
+params['x_dim'] = x_dim
+params['y_dim'] = y_dim
+params['z_dim'] = z_dim
+params['n_frames_to_analyze'] = n_frames_to_analyze
+params['background_frames'] = background_frames
