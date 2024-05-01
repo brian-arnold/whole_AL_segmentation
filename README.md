@@ -11,5 +11,5 @@ If you find that running `01_segment_and_extract_traces.ipynb` takes a long time
 which converts the notebook to a python script. You can then submit a job that runs this script via `run.sh`.
 
 The notebook `01_segment_and_extract_traces.ipynb` creates two subdirectories: 
-    - `binary_mask_plots`:  stores 2D projections of the binary mask that is used to compute mean fluorescence over time
-    - `results`: stores csv files of the extracted signals that can be loaded into DataFrames for downstream analyses
+- `binary_mask_plots`:  stores 2D projections of the binary mask that is used to compute mean fluorescence over time
+- `results`: stores csv files of the extracted signals that can be loaded into DataFrames for downstream analyses
