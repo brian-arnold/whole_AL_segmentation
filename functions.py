@@ -90,7 +90,7 @@ def get_odor_name(index, odor_list, odor_encodings):
     odor = odor_list[index]
     return odor_encodings[odor]
 
-def calculate_AOC(activity_traces, odor_of_interest_indices, odor_list, odor_encodings, p):
+def calculate_AOC(activity_traces, odor_of_interest_indices, odor_list, odor_encodings, p, test=False):
     n_frames_to_analyze = p['n_frames_to_analyze']
     background_frames = p['background_frames']
     aocs_by_samp = defaultdict(lambda : defaultdict(list))
@@ -131,7 +131,8 @@ def calculate_AOC(activity_traces, odor_of_interest_indices, odor_list, odor_enc
             aocs_per_odor[odor_name].append(aoc)
 
             # for testing
-            if i == 0 and samp == list(activity_traces.keys())[0]:
+
+            if test and i == 0 and samp == list(activity_traces.keys())[0]:
                 plt.plot(interval)
                 plt.axhline(baseline, color='black', linestyle='--')
                 plt.axvline(peak_coord, color='red')
