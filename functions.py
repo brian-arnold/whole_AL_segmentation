@@ -90,15 +90,15 @@ def get_odor_name(index, odor_list, odor_encodings):
     odor = odor_list[index]
     return odor_encodings[odor]
 
-def calculate_AOC(activity_traces, odor_of_interest_indices, odor_list, odor_encodings, p, test=False):
+def calculate_AUC(activity_traces, odor_of_interest_indices, odor_list, odor_encodings, p, test=False):
     n_frames_to_analyze = p['n_frames_to_analyze']
     background_frames = p['background_frames']
-    aocs_by_samp = defaultdict(lambda : defaultdict(list))
+    aucs_by_samp = defaultdict(lambda : defaultdict(list))
 
-    aoc_coords = defaultdict(list)
+    auc_coords = defaultdict(list)
 
     for samp in activity_traces:
-        aocs_per_odor = defaultdict(list)
+        aucs_per_odor = defaultdict(list)
         # for each odor, extract max value from the corresponding interval
         for i, index in enumerate(odor_of_interest_indices):
             # get odor name
@@ -121,31 +121,32 @@ def calculate_AOC(activity_traces, odor_of_interest_indices, odor_list, odor_enc
             # find interal that contains the peak index
             for s in split_indices:
                 if peak_coord in s:
-                    start = s[0] - 1 # indices are for where activity is above baseline, so start 1 before
-                    end = s[-1] + 2 # indices are for where activity is above baseline, so end 1 after, and add extra 1 to include the last index
+                    start = s[0]  # indices are for where activity is above baseline, so start 1 before
+                    end = s[-1] + 1 # indices are for where activity is above baseline, so end 1 after, and add extra 1 to include the last index
                     peak_interval = interval[start:end]
                     break
 
             # calculate area under the curve
-            aoc = np.trapz(peak_interval, dx=1)
-            aocs_per_odor[odor_name].append(aoc)
+            auc = np.trapz(peak_interval, dx=1)
+            aucs_per_odor[odor_name].append(auc)
 
             # for testing
 
-            if test and i == 0 and samp == list(activity_traces.keys())[0]:
+            if test and i == 4 and samp == list(activity_traces.keys())[0]:
                 plt.plot(interval)
                 plt.axhline(baseline, color='black', linestyle='--')
                 plt.axvline(peak_coord, color='red')
                 plt.axvline(start, color='green')
                 plt.axvline(end, color='green')
+                print(auc)
 
 
-        for odor in aocs_per_odor:
-            assert len(aocs_per_odor[odor]) <= 2, f" for odor {odor} there were more than 2 trials. This is unexpected."
+        for odor in aucs_per_odor:
+            assert len(aucs_per_odor[odor]) <= 2, f" for odor {odor} there were more than 2 trials. This is unexpected."
 
-        aocs_by_samp[samp] = aocs_per_odor  
+        aucs_by_samp[samp] = aucs_per_odor  
 
-    return aocs_by_samp
+    return aucs_by_samp
 
 def subtract_paraffin_trace(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, n_frames_to_analyze):
     

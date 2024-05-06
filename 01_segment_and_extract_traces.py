@@ -24,7 +24,7 @@ odors_of_interest = []
 
 # ### Load in `experiment_info.py` along with `functions.py`, which has some custom functions used here. 
 
-# In[19]:
+# In[16]:
 
 
 # import important experimental variables
@@ -64,7 +64,7 @@ for o in odors_of_interest:
 
 # ### Import other libraries
 
-# In[3]:
+# In[17]:
 
 
 import matplotlib.pyplot as plt
@@ -81,7 +81,7 @@ import skimage as ski
 # ### Get full file paths for all videos, per sample.
 # Note that this finds **all** videos per sample. We potentially select a subset of these later on.
 
-# In[4]:
+# In[18]:
 
 
 videos = {}
@@ -95,7 +95,7 @@ for samp in samples:
 
 # ### Find indices of videos corresponding to odors specified in `odors_of_interest`. To do this, we will use the order of odors specified in `odor_string` and assume the ordering of videos is the same.
 
-# In[5]:
+# In[19]:
 
 
 odor_of_interest_indices = []
@@ -105,7 +105,7 @@ if odors_of_interest:
             # print(i, odor, odor_encodings[odor])
             odor_of_interest_indices.append(i)
 else:
-    odor_of_interest_indices = range(len(odor_list))
+    odor_of_interest_indices = list(range(len(odor_list)))
 assert odor_of_interest_indices == sorted(odor_of_interest_indices), "odor_of_interest_indices should be sorted"
 print(f"According to your odors of interest, I was able to find this many in the odor_list: {len(odor_of_interest_indices)}") 
 # print("for first sample in list, get the name of files with this odor:")
@@ -117,7 +117,7 @@ print(f"According to your odors of interest, I was able to find this many in the
 # ### For each sample, concatenate all videos and threshold to segment AL.
 # For thresholding, we are currently using `ski.filters.threshold_otsu`
 
-# In[6]:
+# In[20]:
 
 
 # data reloaded to ensure cell runs independently
@@ -134,7 +134,7 @@ for samp in videos:
 # ## Look at 2D projections of 3D binary masks
 # Check out all the .png files that get created in the `binary_mask_plots` subdirectory.
 
-# In[7]:
+# In[21]:
 
 
 os.makedirs('binary_mask_plots', exist_ok=True)
@@ -153,7 +153,7 @@ for i,samp in enumerate(samples):
 
 # ### Within each AL segment, compute mean activity over time
 
-# In[1]:
+# In[22]:
 
 
 mean_activity_within_segment = {}
@@ -166,7 +166,7 @@ for i,samp in enumerate(videos):
 
 # ## Plot activity traces
 
-# In[9]:
+# In[23]:
 
 
 fig, axs = plt.subplots(1, 1, figsize=(8, 4))
@@ -193,23 +193,30 @@ plt.yticks([])
 plt.grid(False)
 sns.despine()
 
+plt.savefig(f'signal_traces.png', dpi=300)
+plt.close()
+
 
 # ## For each odor, using the mean activity traces, get the maximum intensity during the frames corresponding to that odor.
 
-# In[10]:
+# In[39]:
 
+
+# # reload the functions module to make sure we are using the latest version
+# import importlib
+# importlib.reload(fn)
 
 maxs_by_samp = fn.compute_max_responses(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, params['n_frames_to_analyze'])
-aocs_by_samp = fn.calculate_AOC(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, params)
+aucs_by_samp = fn.calculate_AUC(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, params, test=True)
 
 
-# In[11]:
+# In[25]:
 
 
 mean_activity_within_segment_paraffin_subtracted = fn.subtract_paraffin_trace(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, params['n_frames_to_analyze'])
 
 
-# In[12]:
+# In[26]:
 
 
 fig, axs = plt.subplots(1, 1, figsize=(8, 4))
@@ -237,16 +244,16 @@ plt.grid(False)
 sns.despine()
 
 
-# In[13]:
+# In[31]:
 
 
 maxs_by_samp_paraffin_subtracted = fn.compute_max_responses(mean_activity_within_segment_paraffin_subtracted, odor_of_interest_indices, odor_list, odor_encodings, params['n_frames_to_analyze'])
-aocs_by_samp_paraffin_subtracted = fn.calculate_AOC(mean_activity_within_segment_paraffin_subtracted, odor_of_interest_indices, odor_list, odor_encodings, params)
+aucs_by_samp_paraffin_subtracted = fn.calculate_AUC(mean_activity_within_segment_paraffin_subtracted, odor_of_interest_indices, odor_list, odor_encodings, params)
 
 
 # ## Convert the data to a DataFrame and save
 
-# In[23]:
+# In[28]:
 
 
 def convert_to_df(dict, odor_order):
@@ -264,25 +271,25 @@ def convert_to_df(dict, odor_order):
     return df
     
 peak_max_df = convert_to_df(maxs_by_samp, odor_order)
-peak_aoc_df = convert_to_df(aocs_by_samp, odor_order)
+peak_auc_df = convert_to_df(aucs_by_samp, odor_order)
 
 peak_max_paraffin_df = convert_to_df(maxs_by_samp_paraffin_subtracted, odor_order)
-peak_aoc_paraffin_df = convert_to_df(aocs_by_samp_paraffin_subtracted, odor_order)
+peak_auc_paraffin_df = convert_to_df(aucs_by_samp_paraffin_subtracted, odor_order)
 
 os.makedirs('results', exist_ok=True)
 peak_max_df.to_csv('results/peak_max_df.csv', index=False)
-peak_aoc_df.to_csv('results/peak_aoc_df.csv', index=False)
+peak_auc_df.to_csv('results/peak_auc_df.csv', index=False)
 peak_max_paraffin_df.to_csv('results/peak_max_paraffin_df.csv', index=False)
-peak_aoc_paraffin_df.to_csv('results/peak_aoc_paraffin_df.csv', index=False)
+peak_auc_paraffin_df.to_csv('results/peak_auc_paraffin_df.csv', index=False)
 
 
-# In[24]:
+# In[29]:
 
 
 peak_max_df
 
 
-# In[ ]:
+# In[30]:
 
 
 sns.scatterplot(x=list(df[df['trial']==1]['peak_value']),
