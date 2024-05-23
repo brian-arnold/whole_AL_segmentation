@@ -61,9 +61,12 @@ def extract_mean_activity_within_binary_mask(Y, binary_mask, p):
 
 def compute_max_responses(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, n_frames_to_analyze):
     maxs_by_samp = defaultdict(lambda : defaultdict(list))
+    argmaxs_by_samp = defaultdict(lambda : defaultdict(list))
 
     for samp in mean_activity_within_segment:
         maxs_per_odor = defaultdict(list)
+        argmaxs_per_odor = defaultdict(list) # this is to find the frame with maximum activity
+
         # for each odor, extract max value from the corresponding interval
         for i in range(len(odor_of_interest_indices)):
             # get odor name
@@ -75,13 +78,16 @@ def compute_max_responses(mean_activity_within_segment, odor_of_interest_indices
             interval = mean_activity_within_segment[samp][i*n_frames_to_analyze:(i+1)*n_frames_to_analyze]
 
             maxs_per_odor[odor_name].append(np.max(interval))
+            argmaxs_per_odor[odor_name].append(np.argmax(interval))
 
         for odor in maxs_per_odor:
             assert len(maxs_per_odor[odor]) <= 2, f" for odor {odor} there were more than 2 trials. This is unexpected."
+            assert len(argmaxs_per_odor[odor]) <= 2, f" for odor {odor} there were more than 2 trials. This is unexpected."
 
         maxs_by_samp[samp] = maxs_per_odor  
+        argmaxs_by_samp[samp] = argmaxs_per_odor  
 
-    return maxs_by_samp
+    return maxs_by_samp, argmaxs_by_samp
 
 
 
