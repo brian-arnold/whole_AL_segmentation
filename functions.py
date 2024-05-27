@@ -23,14 +23,14 @@ def background_normalize(Y, background_frames, offset=1000):
     Y_normalized = (Y - background)/(background+0.0000000000000000000001) # subtract and divide by background
     return Y_normalized
 
-def load_videos_into_list(videos, odor_of_interest_indices, p, normalize=False):
+def load_videos_into_list(vids, p, normalize=False):
     x_dim, y_dim, z_dim = p['x_dim'], p['y_dim'], p['z_dim']
     n_frames_to_analyze = p['n_frames_to_analyze']
     background_frames = p['background_frames']
     
     Y_list = []
-    for i in odor_of_interest_indices:
-        Y = cm.load(videos[i])
+    for v in vids:
+        Y = cm.load(v)
         Y = reshape(Y, x_dim, y_dim, z_dim)
         assert Y.shape[0] >= n_frames_to_analyze, f"Number of frames in video is less than n_frames_to_analyze. Please specify a smaller number of frames to analyze."
         Y = Y[:n_frames_to_analyze] # only analyze first n_frames
