@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J run
-#SBATCH -o out8
-#SBATCH -e err8
+#SBATCH -o out
+#SBATCH -e err
 #SBATCH --nodes=1                # node count
 #SBATCH --ntasks=1               # total number of tasks across all nodes
 #SBATCH --cpus-per-task=20        # cpu-cores per task (>1 if multi-threaded tasks)

@@ -1,6 +1,7 @@
 import skimage as ski
 import caiman as cm
 import numpy as np
+import pandas as pd
 from collections import defaultdict
 import matplotlib.pyplot as plt
 
@@ -59,7 +60,7 @@ def extract_mean_activity_within_binary_mask(Y, binary_mask, p):
 
     return np.mean(Y_R[:,binary_volume_R], axis=1)
 
-def compute_max_responses(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, n_frames_to_analyze):
+def compute_max_responses(mean_activity_within_segment, puffs, n_frames_to_analyze):
     maxs_by_samp = defaultdict(lambda : defaultdict(list))
     argmaxs_by_samp = defaultdict(lambda : defaultdict(list))
 
@@ -68,11 +69,8 @@ def compute_max_responses(mean_activity_within_segment, odor_of_interest_indices
         argmaxs_per_odor = defaultdict(list) # this is to find the frame with maximum activity
 
         # for each odor, extract max value from the corresponding interval
-        for i in range(len(odor_of_interest_indices)):
-            # get odor name
-            odor_of_interest_index = odor_of_interest_indices[i]
-            odor = odor_list[odor_of_interest_index]
-            odor_name = odor_encodings[odor]
+        for i,puff in enumerate(puffs):
+            odor_name = puff.odor_name
 
             # since a subset of videos were concatenates, use index i of odor_of_interest_indices to get the corresponding interval
             interval = mean_activity_within_segment[samp][i*n_frames_to_analyze:(i+1)*n_frames_to_analyze]
@@ -96,7 +94,7 @@ def get_odor_name(index, odor_list, odor_encodings):
     odor = odor_list[index]
     return odor_encodings[odor]
 
-def calculate_AUC(activity_traces, odor_of_interest_indices, odor_list, odor_encodings, p, test=False):
+def calculate_AUC(activity_traces, puffs, p, test=False):
     n_frames_to_analyze = p['n_frames_to_analyze']
     background_frames = p['background_frames']
     aucs_by_samp = defaultdict(lambda : defaultdict(list))
@@ -106,9 +104,9 @@ def calculate_AUC(activity_traces, odor_of_interest_indices, odor_list, odor_enc
     for samp in activity_traces:
         aucs_per_odor = defaultdict(list)
         # for each odor, extract max value from the corresponding interval
-        for i, index in enumerate(odor_of_interest_indices):
+        for i, puff in enumerate(puffs):
             # get odor name
-            odor_name = get_odor_name(index, odor_list, odor_encodings)
+            odor_name = puff.odor_name
 
             # since a subset of videos were concatenates, use index i of odor_of_interest_indices to get the corresponding interval
             interval = activity_traces[samp][i*n_frames_to_analyze:(i+1)*n_frames_to_analyze]
@@ -190,3 +188,24 @@ def subtract_paraffin_trace(mean_activity_within_segment, odor_of_interest_indic
         mean_activity_within_segment_paraffin_subtracted[samp] = np.array(new_traces)
 
     return mean_activity_within_segment_paraffin_subtracted
+
+
+def convert_to_df(dict, puffs):
+    df_list = []
+    for samp in dict:
+        df_tmp = pd.DataFrame.from_dict(dict[samp])
+        df_tmp['samp'] = samp
+        df_tmp['subpop'] = samp.split('_')[1]
+        df_tmp['trial'] = df_tmp.index+1
+        df_list.append(df_tmp)
+    df = pd.concat(df_list)
+    df = df.reset_index(drop=True)
+    df = pd.melt(df, id_vars=['samp', 'subpop', 'trial'], var_name='odor', value_name='value')
+
+    odor_order = {}
+    for puff in puffs:
+        if puff.trial == 1:
+            odor_order[puff.odor_name] = puff.number
+
+    df['odor_order'] = df['odor'].map(odor_order)
+    return df

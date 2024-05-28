@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from collections import defaultdict
+
 # Names of samples.
 # It is assumed there exists a directory (specified below in `data_dir`) which contains a subdirectory for each sample, named according to the strings in this list.
 # Within each of these subdirectories there should be .tif files that are also prefixed with the sample name.
@@ -71,6 +74,26 @@ odor_encodings = {'100A': 'sulcatone-2',
                 '100U': 'hexanal4.375', 
                 '60U': 'hexanal4.03', 
                 '10U': 'hexanal2.825'}
+
+
+# store information about each odor in a class
+@dataclass
+class Puff:
+    # this class keeps track of information about each odor puff
+    odor_name: str
+    odor_name_encoded: str
+    trial: int # whether this was the first or second time all odors were presented
+    number: int # 0-based puff number according to the order in odor_string above, this number is used to grab the corresponding video, e.g. if number=0, then the video is the first video in the list of videos
+    
+    def __str__(self):
+        return f"{self.odor_name}-{self.puff_number}"
+
+puffs = []
+trial = defaultdict(int)
+for i, odor in enumerate(odor_string.split('_')):
+    trial[odor] += 1
+    puffs.append(Puff(odor_encodings[odor], odor, trial[odor], i))
+
 
 params = {}
 params['x_dim'] = x_dim
