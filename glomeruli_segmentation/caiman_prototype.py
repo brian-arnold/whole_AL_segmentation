@@ -6,15 +6,17 @@
 # For more information check demo_pipeline.ipynb which performs the complete pipeline for
 # 2d two photon imaging data.
 
-# In[ ]:
+# In[4]:
 
 
+# from IPython import get_ipython
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import glob
 import pickle
+import sys
 from scipy.ndimage import gaussian_filter
 from tifffile.tifffile import imwrite
 
@@ -22,9 +24,15 @@ import caiman as cm
 from caiman.utils.visualization import nb_view_patches3d
 import caiman.source_extraction.cnmf as cnmf
 
-
+# try:
+#     if __IPYTHON__:
+#         get_ipython().run_line_magic('load_ext', 'autoreload')
+#         get_ipython().run_line_magic('autoreload', '2')
+# except NameError:
+#     pass
 
 import bokeh.plotting as bpl
+# bpl.output_notebook()
 
 logging.basicConfig(format=
                           "%(relativeCreated)12d [%(filename)s:%(funcName)20s():%(lineno)s] [%(process)d] %(message)s",
@@ -32,20 +40,22 @@ logging.basicConfig(format=
                     level=logging.WARNING)
 
 from bokeh.io import output_notebook 
+# output_notebook()
 
 
-# In[ ]:
+# In[6]:
 
 
-from experiment_info import samples, data_dir
-from experiment_info import params as p
+sys.path.insert(0, '../')
+from experiment_info import samples, data_dir, puffs, params
 import functions as fn
 import skimage as ski
 
-samp_index = 8
+samp_index = int(sys.argv[1])
 
 
-# In[ ]:
+
+# In[10]:
 
 
 videos = {}
@@ -55,13 +65,14 @@ for samp in samples:
     assert len(v) == 72, f"Expected 72 videos, got {len(v)}"
     # take first 36 videos
     v = v[:36]
+    # v = v[6:8] # for testing
     # assert len(v) == 36, f"Expected 36 videos, got {len(v)}"
     videos[samp] = v
 
 
 # ### Load data
 
-# In[ ]:
+# In[11]:
 
 
 loaded_normalized_videos = []
@@ -72,30 +83,24 @@ def apply_median_filter(v):
         filtered_frames.append( ski.filters.median(frame, behavior='ndimage') )
     return cm.movie(np.array(filtered_frames))
 
-
-
 for i,samp in enumerate(videos):
     if i != samp_index:
         continue
-    for vid in videos[samp]:
-        try:
-            vid = fn.reshape(cm.load(vid), p['x_dim'], p['y_dim'], p['z_dim'])
-            vid = fn.background_normalize(vid, p['background_frames'])
-            vid = apply_median_filter(vid)
-            loaded_normalized_videos.append(vid)
-        except ValueError:
-            print(f'Error loading {i}')
+    vid_list = fn.load_videos_into_list(videos[samp], params, normalize=True)
+    for vid in vid_list:
+        loaded_normalized_videos.append(apply_median_filter(vid))
 
+print(len(loaded_normalized_videos))
 Y = cm.concatenate(loaded_normalized_videos)
 
 
 # ### Display the raw movie (optional)
 
-# In[ ]:
+# In[15]:
 
 
 # z_stack_movie = 15
-# Y[...,z_stack_movie].play(magnification=2, backend='embed_opencv', fr=300)
+# Y[...,z_stack_movie].play(magnification=3, backend='embed_opencv', fr=300)
 
 
 # ## Save movie
@@ -194,7 +199,7 @@ c, dview, n_processes = cm.cluster.setup_cluster(
 
 
 # set parameters
-K = 10  # number of neurons expected per patch
+K = 5  # number of neurons expected per patch
 gSig = [8, 8, 4]  # expected half size of neurons
 merge_thresh = 0.8  # merging threshold, max correlation allowed
 p = 2  # order of the autoregressive system
