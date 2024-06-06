@@ -152,17 +152,13 @@ def calculate_AUC(activity_traces, puffs, p, test=False):
 
     return aucs_by_samp
 
-def subtract_paraffin_trace(mean_activity_within_segment, odor_of_interest_indices, odor_list, odor_encodings, n_frames_to_analyze):
+def subtract_paraffin_trace(mean_activity_within_segment, puffs, n_frames_to_analyze):
     
     mean_activity_within_segment_paraffin_subtracted = {}
-    num_odors = len(odor_list)
+    num_odors = len(puffs)
 
     # find indices of the odors delivered that correspond to paraffin, should be 2 for 2 trials
-    paraffin_indices = []
-    for i, index in enumerate(odor_of_interest_indices):
-        odor_name = get_odor_name(index, odor_list, odor_encodings)
-        if odor_name == 'paraffin':
-            paraffin_indices.append(i)
+    paraffin_indices = [p.number for p in puffs if p.odor_name == "paraffin"]
     assert len(paraffin_indices) == 2, f"Expected to find 2 paraffin trials, but found {len(paraffin_indices)}"
     assert paraffin_indices[0] < paraffin_indices[1], f"Expected paraffin trial 1 to come before paraffin trial 2, but found {paraffin_indices}"
 
@@ -173,13 +169,13 @@ def subtract_paraffin_trace(mean_activity_within_segment, odor_of_interest_indic
         for i, index in enumerate(paraffin_indices):
             interval = mean_activity_within_segment[samp][index*n_frames_to_analyze:(index+1)*n_frames_to_analyze]
             paraffin_traces[i] = interval
-
+        
         # subtract paraffin traces from each odor trace
-        for i, index in enumerate(odor_of_interest_indices):
-            odor_name = get_odor_name(index, odor_list, odor_encodings)
+        for puff in puffs:
+            i = puff.number
             interval = mean_activity_within_segment[samp][i*n_frames_to_analyze:(i+1)*n_frames_to_analyze]
             # if this odor was delivered in the first half, subtract paraffin trace from first trial
-            if index <= (num_odors/2) - 1:
+            if i <= (num_odors/2) - 1:
                 interval_subtracted = interval - paraffin_traces[0]
             else:
                 interval_subtracted = interval - paraffin_traces[1]
