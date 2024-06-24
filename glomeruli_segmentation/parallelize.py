@@ -49,16 +49,16 @@ def main():
   out_dir = "./"
 
   for i,samp in enumerate(samples):
-    if i <= 4:
+    if i > 4:
         continue
-    command = "source /jukebox/mcbride/bjarnold/miniforge3/etc/profile.d/conda.sh\n" 
+    command = "source /mnt/cup/labs/mcbride/bjarnold/miniforge3/etc/profile.d/conda.sh\n" 
     command += f"conda activate {conda_environment}\n" 
 
-    command += f"python caiman_prototype.py {i} 8 8 2\n"
-    # command += f"python caiman_prototype_median_filt.py {i} 5 2 2 0.5\n"
+    # command += f"python caiman_prototype.py {i} 8 8 2\n"
+    command += f"python 00_caiman_segment.py {i} 5 4 4 1\n"
 
     print(command)
-    create_job_script(f"{i}_5_882", out_dir, tasks, cpu_per_task, t, mem, command)
+    create_job_script(f"{i}_5_441", out_dir, tasks, cpu_per_task, t, mem, command)
     time.sleep(1)
 
 if __name__ == '__main__':

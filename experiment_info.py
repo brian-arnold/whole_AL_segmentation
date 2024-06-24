@@ -21,7 +21,7 @@ samples = ['230913_ORL_GCaMP6f_F1',
            '230915_FCV_GCaMP6f_F1']
 
 # The directory containing the data for each sample.
-data_dir = "/jukebox/mcbride/bjarnold/new_analysis/data/Mar_22_2024/1_RegisteredBrains"
+data_dir = "/mnt/cup/labs/mcbride/bjarnold/new_analysis/data/Mar_22_2024/1_RegisteredBrains"
 
 # the dimensions of the 3D volumes imaged over time
 x_dim, y_dim, z_dim = 128, 128, 24
