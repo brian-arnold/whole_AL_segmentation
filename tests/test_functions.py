@@ -17,6 +17,11 @@ from experiment_info import samples, data_dir, puffs, params
 import functions as fn
 
 
+#######
+# Some functions require unnormalized data, others normalized data, 
+# so create fixtures for both
+#######
+
 @pytest.fixture
 def vids_unnormalized():
     vids = glob.glob(f"{data_dir}/{samples[0]}/*.registered.tif")
@@ -31,8 +36,13 @@ def vids_normalized():
     vid_list = fn.load_videos_into_list(vids, params, normalize=True)
     return vid_list
 
+#######
+# test find_binary_mask function but also return the mask for later testing
+#######
+
 @pytest.fixture
 def test_binary_mask(vids_unnormalized):
+    # the binary mask function performs median filtering, so give it unnormalized data
     Y = cm.concatenate(vids_unnormalized)
     binary_mask = fn.find_binary_mask(Y)
     with open('tests/data/binary_masks_sample0.pkl', 'rb') as f:
