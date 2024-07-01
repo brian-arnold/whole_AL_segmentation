@@ -15,18 +15,30 @@ from experiment_info import puffs
 # this list contains the lowest 3 concentrations of each aldehyde, 
 # followed by the negative control paraffin
 # followed by reference odorants
-odors_to_select = ['octanal3.525', 
+odors_to_select = ['octanal4.58',
+                    'octanal4.09',
+                    'octanal3.525', 
                     'octanal3.09', 
                     'octanal1.595',
+
+                    'nonanal4.56',
+                    'nonanal4.045',
                     'nonanal3.445', 
                     'nonanal2.77', 
                     'nonanal1.72',
+
+                    'decanal4.53',
+                    'decanal4.015',
                     'decanal3.425', 
                     'decanal2.855', 
                     'decanal2.18', 
+
+                    'undecanal4.145',
+                    'undecanal3.9',
                     'undecanal3.205', 
                     'undecanal2.765', 
                     'undecanal2.375', 
+                    
                     'paraffin',
                     'sulcatone-3',
                     'phenol',

@@ -41,25 +41,30 @@ def sbatch_submit(filename):
 
 def main():
 
-  conda_environment = "caiman"
-  tasks = 1  # total number of tasks across all nodes
-  cpu_per_task = 20 # cpu-cores per task (>1 if multi-threaded tasks)
-  t = "0-03:00:00" # DAY-HR:MIN"SEC
-  mem = 50000 # in MB
-  out_dir = "./"
+	conda_environment = "caiman"
+	tasks = 1  # total number of tasks across all nodes
+	cpu_per_task = 20 # cpu-cores per task (>1 if multi-threaded tasks)
+	t = "0-01:00:00" # DAY-HR:MIN"SEC
+	mem = 80000 # in MB
+	out_dir = "./"
 
-  for i,samp in enumerate(samples):
-    if i > 4:
-        continue
-    command = "source /mnt/cup/labs/mcbride/bjarnold/miniforge3/etc/profile.d/conda.sh\n" 
-    command += f"conda activate {conda_environment}\n" 
+	for i,samp in enumerate(samples):
+		if i <= 4:
+			continue
+		command = "source /mnt/cup/labs/mcbride/bjarnold/miniforge3/etc/profile.d/conda.sh\n" 
+		command += f"conda activate {conda_environment}\n" 
 
-    # command += f"python caiman_prototype.py {i} 8 8 2\n"
-    command += f"python 00_caiman_segment.py {i} 5 4 4 1\n"
+		# command += f"python 00_caiman_segment.py {i} 5 4 4 1\n"
+		command += f"python 00_caiman_segment.py "
+		command += f"--sample_index {i} "
+		command += f"--K 8 "
+		command += f"--gSig 4 4 1 "
+		command += f"--odor_file odor_subset_lists/5_aldehydes_with_refs.txt "
+		command += f"--out_dir results/caiman/odor_subset_5_aldehydes "
 
-    print(command)
-    create_job_script(f"{i}_5_441", out_dir, tasks, cpu_per_task, t, mem, command)
-    time.sleep(1)
+		print(command)
+		create_job_script(f"{i}_8_441", out_dir, tasks, cpu_per_task, t, mem, command)
+		time.sleep(1)
 
 if __name__ == '__main__':
   main()

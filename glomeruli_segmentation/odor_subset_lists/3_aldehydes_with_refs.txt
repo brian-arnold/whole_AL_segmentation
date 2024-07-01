@@ -1,0 +1,25 @@
+octanal3.525 
+octanal3.09 
+octanal1.595
+
+nonanal3.445 
+nonanal2.77 
+nonanal1.72
+
+decanal3.425 
+decanal2.855 
+decanal2.18 
+
+undecanal3.205 
+undecanal2.765 
+undecanal2.375 
+
+paraffin
+sulcatone-3
+phenol
+benzaldehyde
+oxoisophorone
+2-ethylhexanol
+hexanoic acid
+camphor
+1-octen-3-ol

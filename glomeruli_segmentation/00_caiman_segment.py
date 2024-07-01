@@ -1,16 +1,5 @@
 #!/usr/bin/env python
-# coding: utf-8
 
-# # Volumetric data processing
-# 
-# Please see the `segmentation_info.py` module, which contains a list of odorants (`odors_to_select`) to potentially use as a subsetted panel for analysis (e.g. to exclude the highest concentrations)
-# 
-
-# In[1]:
-
-
-from IPython import get_ipython
-import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -20,59 +9,35 @@ import sys
 from scipy.ndimage import gaussian_filter
 from tifffile.tifffile import imwrite
 import imageio
-
 import caiman as cm
-from caiman.utils.visualization import nb_view_patches3d
 import caiman.source_extraction.cnmf as cnmf
-
-try:
-    if __IPYTHON__:
-        get_ipython().run_line_magic('load_ext', 'autoreload')
-        get_ipython().run_line_magic('autoreload', '2')
-except NameError:
-    pass
-
-import bokeh.plotting as bpl
-bpl.output_notebook()
-
-logging.basicConfig(format=
-                          "%(relativeCreated)12d [%(filename)s:%(funcName)20s():%(lineno)s] [%(process)d] %(message)s",
-                    # filename="/tmp/caiman.log",
-                    level=logging.WARNING)
-
-from bokeh.io import output_notebook 
-output_notebook()
-
-
-# In[17]:
-
-
-sys.path.insert(0, '../')
-from experiment_info import samples, data_dir, puffs, params
-from segmentation_info import odors_to_select, puffs_filt
-import functions as fn
 import skimage as ski
 from collections import defaultdict
 
-samp_index = int(sys.argv[1])
+sys.path.insert(0, '../')
+from experiment_info import samples, data_dir, puffs, params
+import functions as fn
+from parse_args import args, odors_to_select, puffs_filt
+
+print(args)
+
+samp_index = args.sample_index
 
 motion_correction = True
 
 # set parameters
-K = int(sys.argv[2])  # number of neurons expected per patch
-gSig = [int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]  # expected half size of neurons
+K = args.K  # number of neurons expected per patch
+gSig = args.gSig  # expected half size of neurons
 merge_thresh = 0.9  # merging threshold, max correlation allowed
 p = 2  # order of the autoregressive system
 
 gSig_string = '_'.join([str(x) for x in gSig])
-results_dir_base = "results/caiman/odor_subset"
+results_dir_base = args.out_dir
 results_dir = f"{results_dir_base}/gSig_{gSig_string}/K{K}"
 os.makedirs(results_dir, exist_ok=True)
 
 
 # ### Select specific odors
-
-# In[4]:
 
 
 videos = {}
@@ -125,9 +90,6 @@ Y = cm.concatenate(loaded_normalized_videos)
 
 # ### Make Gif, which is extremely useful for sanity-checking the segmentation results to see if they're sensisble.
 
-# In[19]:
-
-
 movie_2d = np.max(Y, axis=3)
 # movie_2d = Y[...,15]
 movie_2d = (movie_2d - np.min(movie_2d))/(np.max(movie_2d) - np.min(movie_2d))
@@ -136,10 +98,8 @@ movie_2d = (movie_2d - np.min(movie_2d))/(np.max(movie_2d) - np.min(movie_2d))
 new_width = 480  # Adjust the desired width here
 new_height = 480  # Adjust the desired height here
 
-
 # go through each frame
 # get divide by params['n_frames_to_analyze'], this is the odor number
-
 
 frames = []
 frames_per_odor = defaultdict(int)
@@ -156,11 +116,7 @@ imageio.mimsave(f'{results_dir_base}/{samples[samp_index]}_raw.gif', frames, fps
 
 
 # # Set up a cluster
-
-# In[20]:
-
-
-#%% start a cluster for parallel processing (if a cluster already exists it will be closed and a new session will be opened)
+# start a cluster for parallel processing (if a cluster already exists it will be closed and a new session will be opened)
 if 'dview' in locals():
     cm.stop_server(dview=dview)
 c, dview, n_processes = cm.cluster.setup_cluster(
@@ -168,9 +124,6 @@ c, dview, n_processes = cm.cluster.setup_cluster(
 
 
 # ## Save movie as memmap then load, without motion correction
-
-# In[21]:
-
 
 fname = os.path.join(f'{data_dir}/{samples[samp_index]}', 'concatenated.tif')
 imwrite(fname, Y)
@@ -189,9 +142,6 @@ if not motion_correction:
 # ### Motion Correction
 # First we create a motion correction object with the parameters specified. Note that the file is not loaded in memory
 
-# In[22]:
-
-
 # motion correction parameters
 opts_dict = {'fnames': fname,
             'strides': (128, 128, 24),    # start a new patch for pw-rigid motion correction every x pixels, orig: (24, 24, 6)
@@ -203,11 +153,6 @@ opts_dict = {'fnames': fname,
 
 opts = cnmf.params.CNMFParams(params_dict=opts_dict)
 
-
-# In[23]:
-
-
-# %%capture
 # Run motion correction using NoRMCorre
 if motion_correction:
     # first we create a motion correction object with the parameters specified
@@ -229,8 +174,6 @@ if motion_correction:
 
 # # play movie of motion correction
 
-# In[28]:
-
 
 # # comvert images to camian movie
 # TEMP = cm.movie(images)
@@ -240,7 +183,6 @@ if motion_correction:
 
 # Now restart the cluster to clean up memory
 
-# In[24]:
 
 
 # restart cluster to clean up memory
@@ -251,18 +193,12 @@ c, dview, n_processes = cm.cluster.setup_cluster(
 
 # ### Run CNMF
 
-# In[25]:
-
 
 # INIT
 cnm = cnmf.CNMF(n_processes, k=K, gSig=gSig, merge_thresh=merge_thresh, p=p, dview=dview)
 cnm.params.set('spatial', {'se': np.ones((3,3,1), dtype=np.uint8)})
 
 
-# In[26]:
-
-
-# %%capture
 # FIT
 cnm = cnm.fit(images)
 
@@ -270,18 +206,16 @@ cnm = cnm.fit(images)
 # ### View the results
 # View components per plane
 
-# In[13]:
-
 
 # cnm.estimates.nb_view_components_3d(image_type='mean', dims=dims, axis=2);
 
 
 # ### Component Evaluation
 
-# In[27]:
 
 
-#%% COMPONENT EVALUATION
+
+# COMPONENT EVALUATION
 # the components are evaluated in two ways:
 #   a) the shape of each component must be correlated with the data
 #   b) a minimum peak SNR is required over the length of a transient
@@ -304,33 +238,13 @@ print(('Keeping ' + str(len(cnm.estimates.idx_components)) +
 # ### Re-run seeded CNMF
 # Now we re-run CNMF on the whole FOV seeded with the accepted components.
 
-# In[28]:
-
-
-# %%time
 cnm.params.set('temporal', {'p': p})
 cnm2 = cnm.refit(images)
 # STOP CLUSTER
 cm.stop_server(dview=dview)
 
 
-# In[29]:
-
-
 with open(f'{results_dir}/{samples[samp_index]}_cnm2.pkl', 'wb') as f:
     pickle.dump(cnm2, f)
 
-
-# ### View the results
-# Unlike the above layered view, here we view the components as max-projections (frontal in the XY direction, sagittal in YZ direction and transverse in XZ), and we also show the denoised trace.
-
-# In[30]:
-
-
-# cnm2.estimates.nb_view_components_3d(image_type='mean', 
-#                                      dims=dims, 
-#                                      Yr=Yr, 
-#                                      denoised_color='red', 
-#                                      max_projection=True,
-#                                      axis=2);
 
