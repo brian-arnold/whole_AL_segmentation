@@ -2,5 +2,7 @@ out
 err
 results/images_at_max_intensity_per_odor/*
 results/caiman/*
-glomeruli_segmentation/results/*
+glomeruli_segmentation/results/caiman*
+glomeruli_segmentation/results/results.pkl
+
 whole_AL_segmentation/results_tmp/binary_masks/*
