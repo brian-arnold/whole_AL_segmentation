@@ -1,0 +1,14 @@
+README.md
+setup.py
+AL_segmentation.egg-info/PKG-INFO
+AL_segmentation.egg-info/SOURCES.txt
+AL_segmentation.egg-info/dependency_links.txt
+AL_segmentation.egg-info/top_level.txt
+tests/test_data.py
+tests/test_functions.py
+utils/__init__.py
+utils/tmp_activity_traces.py
+utils/tmp_binary_mask.py
+utils/tmp_video_IO.py
+whole_AL_segmentation/01_segment_and_extract_traces.py
+whole_AL_segmentation/__init__.py

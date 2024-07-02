@@ -4,6 +4,10 @@ To install all the appropriate python packages, please type the following on the
 
 `mamba create -n caiman -y anaconda::scikit-image conda-forge::caiman numpy seaborn pandas matplotlib`
 
+Then navigate to the main directory of this github repo and type on the command line:
+
+`pip install -e .`
+
 If you find that running `01_segment_and_extract_traces.ipynb` takes a long time, you can run the following command:
 
 `jupyter nbconvert --to script 01_segment_and_extract_traces.ipynb`

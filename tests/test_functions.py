@@ -13,9 +13,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from experiment_info import samples, data_dir, puffs, params
 
-import tmp_activity_traces as activity_traces
-import tmp_video_IO as video_IO
-import tmp_binary_mask as bm
+import utils.activity_traces as activity_traces
+import utils.video_IO as video_IO
+import utils.binary_mask as bm
 
 
 def convert_to_df(maxs, name, puffs):

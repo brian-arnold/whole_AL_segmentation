@@ -77,7 +77,7 @@ odor_encodings = {'100A': 'sulcatone-2',
 
 
 # store information about each odor in a class
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Puff:
     # this class keeps track of information about each odor puff
     odor_name: str
